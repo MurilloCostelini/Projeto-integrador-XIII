@@ -2,27 +2,10 @@ import tkinter as tk
 import random
 import math
 from tkinter import messagebox
-import serial
-import time
 
-def enviar_comando(comando):
-    """Função que envia um comando ao Arduino e aguarda resposta."""
-    try:
-        with serial.Serial('COM6', 9600, timeout=1) as arduino:
-            time.sleep(2)  # Tempo para estabilizar a comunicação
-            arduino.write((comando + '\n').encode())  # Envia comando
-            while True:
-                resposta = arduino.readline().decode('utf-8').strip()
-                if resposta:
-                    print(f"Resposta do Arduino: {resposta}")
-                    if "Comando executado" in resposta:
-                        break
-            time.sleep(0.5)  # Pausa entre comandos para evitar sobrecarga
-    except serial.SerialException as e:
-        print(f"Erro ao acessar a porta serial: {e}")
-
-def jogar_roleta():
-    root.withdraw()  # Oculta a janela inicial
+def jogar_roleta(root, callback=None):
+    # Não é mais necessário ocultar a janela principal
+    # root.withdraw()  # Isso não será necessário agora
 
     def girar_seta():
         duracao_total = 3000  # Duração total da animação (ms)
@@ -57,13 +40,16 @@ def jogar_roleta():
                 roleta.after(intervalo, animar_giro)
                 passo_atual += 1
             else:
-                gerar_comando(numero_vencedor)
+                # Quando a roleta parar de girar, chama a função callback com o resultado
+                quantidades = gerar_comando(numero_vencedor)
+                if callback:
+                    callback(quantidades)  # Passa as quantidades para a função callback
 
         passos_totais = 300  # Total de passos para suavizar a animação
         animar_giro()
 
     def gerar_comando(numero_total):
-        """Gera o comando no formato adequado e o envia ao Arduino."""
+        """Gera as quantidades de M&Ms para cada cor."""
         motores = ["LARANJA", "VERMELHO", "AMARELO", "AZUL", "VERDE"]
         base = numero_total // 5  # Quantidade base para cada motor
         restante = numero_total % 5  # Restante para distribuir
@@ -73,14 +59,8 @@ def jogar_roleta():
         for i in range(restante):
             resultado[motores[i]] += 1
 
-        # Formata e envia os comandos para o Arduino
-        comandos = [f"{cor} {quantidade}" for cor, quantidade in resultado.items()]
-        for comando in comandos:
-            if " 0" not in comando:  # Ignora comandos com quantidade 0
-                print(f"Enviando: {comando}")
-                enviar_comando(comando)
-
-        mostrar_pontuacao(numero_total, "\n".join(comandos))
+        # Retorna as quantidades das cores (sem os nomes das cores)
+        return list(resultado.values())
 
     def atualiza_seta(angulo_atual):
         """Atualiza a posição da seta ao redor da roleta."""
@@ -96,12 +76,6 @@ def jogar_roleta():
             ponta_x, ponta_y, base1_x, base1_y, base2_x, base2_y,
             fill="red", outline="black", tags="seta"
         )
-
-    def mostrar_pontuacao(numero_total, comandos):
-        """Exibe o resultado e encerra o jogo."""
-        messagebox.showinfo("Resultado", f"Você ganhou {numero_total} M&Ms!\nComandos enviados:\n{comandos}")
-        roleta.destroy()  # Fecha a janela da roleta
-        root.destroy()  # Fecha a janela principal
 
     # Configuração da janela principal da roleta
     roleta = tk.Toplevel(root)
@@ -142,8 +116,5 @@ def jogar_roleta():
     tk.Button(roleta, text="Girar Seta", command=girar_seta).pack(pady=20)
     roleta.mainloop()
 
-# Inicializa a aplicação
-root = tk.Tk()
-root.title("Roleta")
-root.geometry("0x0")
-jogar_roleta()
+if __name__ == "__main__":
+    resultado = jogar_roleta()  # Agora retorna o resultado ao invés de exibir

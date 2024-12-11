@@ -3,9 +3,9 @@ from tkinter import messagebox
 import random
 import string
 
-
 class CacaPalavrasGame:
-    def __init__(self):
+    def __init__(self, callback=None):
+        self.callback = callback  # Permite passar um callback para capturar a pontuação
         self.root = tk.Tk()
         self.root.title("Caça-Palavras")
 
@@ -151,15 +151,9 @@ class CacaPalavrasGame:
         for linha in self.labels:
             for label in linha:
                 label.config(state="disabled")
-        
-        messagebox.showinfo("Parabéns!", "Você encontrou todas as palavras! Pontuação final: {}".format(self.pontuacao))
-        
-        print("Detalhes da pontuação:")
-        for palavra in self.palavras:
-            pontos = 3 if palavra in self.palavras_encontradas else 0
-            print(f"{palavra}: {pontos} pontos")
-        
-        print(f"Pontuação Total: {self.pontuacao}")
+
+        messagebox.showinfo("Parabéns!", f"Você encontrou todas as palavras! Pontuação final: {self.pontuacao}")
+
         self.root.destroy()
 
     def iniciar_cronometro(self):
@@ -167,21 +161,21 @@ class CacaPalavrasGame:
         if self.tempo_restante > 0 and self.jogando:
             self.tempo_restante -= 1
             self.tempo_label.config(text=f"Tempo: {self.tempo_restante}s")
-            self.root.after(1000, self.iniciar_cronometro)
+            self.root.after(1000, lambda: self.iniciar_cronometro())  # Usando lambda para garantir a referência correta
         elif self.jogando:
             self.jogando = False
             for linha in self.labels:
                 for label in linha:
                     label.config(state="disabled")
-            
+
             messagebox.showinfo("Fim de Jogo", f"Tempo esgotado! Pontuação final: {self.pontuacao}")
-            
-            print("Detalhes da pontuação:")
-            for palavra in self.palavras:
-                pontos = 3 if palavra in self.palavras_encontradas else 0
-                print(f"{palavra}: {pontos} pontos")
-            
-            print(f"Pontuação Total: {self.pontuacao}")
+
+            # Criando o dicionário de pontuações para enviar ao callback
+            pontuacoes_palavras = {palavra: (3 if palavra in self.palavras_encontradas else 0) for palavra in self.palavras}
+            pontuacoes_palavras["Total"] = self.pontuacao
+            if self.callback:
+                self.callback(pontuacoes_palavras)  # Chama o callback com as pontuações
+
             self.root.destroy()
 
     def reiniciar_jogo(self):
@@ -195,6 +189,3 @@ class CacaPalavrasGame:
         self.gerar_tabela()
         self.iniciar_cronometro()
 
-
-# Inicia o jogo
-CacaPalavrasGame()

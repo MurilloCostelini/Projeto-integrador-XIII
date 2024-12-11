@@ -2,6 +2,8 @@ import tkinter as tk
 import subprocess
 import serial
 import time
+from Jogos.caca_palavra import CacaPalavrasGame
+from Jogos.roleta import jogar_roleta
 
 # Configuração da porta serial (ajuste conforme necessário)
 PORTA_SERIAL = 'COM6'  # Substitua pela porta correta do Arduino
@@ -17,15 +19,13 @@ except Exception as e:
 
 def enviar_comando(comando):
     """Envia um comando para o Arduino via porta serial."""
+    print(f"\nComando recebido: {comando}\n")
+    
     if arduino:
         arduino.write(f"{comando}\n".encode())
         print(f"Comando enviado: {comando}")
     else:
         print("Erro: Arduino não conectado.")
-
-# Caminhos dos jogos
-CAMINHO_CACA_PALAVRAS = r"C:\VSCODE\Separador de M&Ms - PI XIII\Jogos\caca_palavra.py"
-CAMINHO_ROLETA = r"C:\VSCODE\Separador de M&Ms - PI XIII\Jogos\roleta.py"
 
 def abrir_jogo(caminho, comando_arduino):
     """Abre o jogo especificado e envia o comando ao Arduino."""
@@ -76,17 +76,32 @@ def criar_botao(frame, text, command):
     )
     return botao
 
+def processar_caca_palavra():
+    def receber_resultado(quantidades):
+        print(f"Quantidades distribuídas Caca Palavra: {quantidades}")
+
+    CacaPalavrasGame(callback=receber_resultado)
+
 # Botões dos jogos
 botao_caca_palavras = criar_botao(
     frame_jogos, 
     "Caça-Palavras", 
-    lambda: abrir_jogo(CAMINHO_CACA_PALAVRAS, "AZUL")  # Exemplo de comando: "AZUL"
+    lambda: processar_caca_palavra()
 )
+
+def processar_roleta():
+    def receber_resultado(quantidades):
+        print(f"Quantidades distribuídas Roleta: {quantidades}")
+
+    jogar_roleta(root, callback=receber_resultado)
+
+
 botao_roleta = criar_botao(
     frame_jogos, 
     "Roleta", 
-    lambda: abrir_jogo(CAMINHO_ROLETA, "VERMELHO")  # Exemplo de comando: "VERMELHO"
+    lambda: processar_roleta()
 )
+
 botao_memoria = criar_botao(
     frame_jogos, 
     "Memória", 

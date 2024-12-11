@@ -146,13 +146,17 @@ class CacaPalavrasGame:
         self.selecao = []
 
     def finalizar_jogo(self):
-        """Exibe mensagem de parabéns ao jogador e finaliza o jogo."""
         self.jogando = False
         for linha in self.labels:
             for label in linha:
                 label.config(state="disabled")
 
         messagebox.showinfo("Parabéns!", f"Você encontrou todas as palavras! Pontuação final: {self.pontuacao}")
+
+        # Chama o callback com as pontuações
+        if self.callback:
+            pontuacoes_palavras = {palavra: (3 if palavra in self.palavras_encontradas else 0) for palavra in self.palavras}
+            self.callback(pontuacoes_palavras)  # Chama o callback com as pontuações
 
         self.root.destroy()
 
@@ -169,11 +173,9 @@ class CacaPalavrasGame:
                     label.config(state="disabled")
 
             messagebox.showinfo("Fim de Jogo", f"Tempo esgotado! Pontuação final: {self.pontuacao}")
-
-            # Criando o dicionário de pontuações para enviar ao callback
-            pontuacoes_palavras = {palavra: (3 if palavra in self.palavras_encontradas else 0) for palavra in self.palavras}
-            pontuacoes_palavras["Total"] = self.pontuacao
+            # Criando a lista de pontuações por palavra
             if self.callback:
+                pontuacoes_palavras = {palavra: (3 if palavra in self.palavras_encontradas else 0) for palavra in self.palavras}
                 self.callback(pontuacoes_palavras)  # Chama o callback com as pontuações
 
             self.root.destroy()
@@ -188,4 +190,3 @@ class CacaPalavrasGame:
         self.jogando = True
         self.gerar_tabela()
         self.iniciar_cronometro()
-

@@ -32,10 +32,6 @@ def abrir_jogo(caminho, comando_arduino):
     subprocess.Popen(["python", caminho])
     enviar_comando(comando_arduino)
 
-def abrir_memoria():
-    """Placeholder para o jogo de memória."""
-    print("Jogo de Memória ainda será adicionado.")
-    enviar_comando("MEMORIA")  # Exemplo de comando
 
 def recolher_mms():
     """Simula o comando de recolher 6 M&Ms."""
@@ -78,7 +74,7 @@ def criar_botao(frame, text, command):
 
 def processar_caca_palavra():
     def receber_resultado(quantidades):
-        print(f"Quantidades distribuídas Caca Palavra: {quantidades}")
+        print(f"Quantidades distribuídas Caca Palavra: \t\t{quantidades}")
 
     CacaPalavrasGame(callback=receber_resultado)
 
@@ -91,7 +87,7 @@ botao_caca_palavras = criar_botao(
 
 def processar_roleta():
     def receber_resultado(quantidades):
-        print(f"Quantidades distribuídas Roleta: {quantidades}")
+        print(f"Quantidades distribuídas Roleta: \t\t{quantidades}")
 
     jogar_roleta(root, callback=receber_resultado)
 
@@ -102,16 +98,10 @@ botao_roleta = criar_botao(
     lambda: processar_roleta()
 )
 
-botao_memoria = criar_botao(
-    frame_jogos, 
-    "Memória", 
-    abrir_memoria
-)
 
 # Organizar os botões em grade
 botao_caca_palavras.grid(row=0, column=0, padx=20, pady=20)
 botao_roleta.grid(row=0, column=1, padx=20, pady=20)
-botao_memoria.grid(row=0, column=2, padx=20, pady=20)
 
 # Botão para "Recolher 6 M&Ms"
 botao_recolher = tk.Button(

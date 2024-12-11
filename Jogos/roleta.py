@@ -3,6 +3,19 @@ import random
 import math
 from tkinter import messagebox
 
+def exibir_resultado(quantidades, numero_vencedor, roleta):
+    """Exibe o resultado da roleta em uma caixa de mensagem."""
+    resultado_texto = f"Resultado da Roleta:\nNúmero vencedor: {numero_vencedor}\n"
+    resultado_texto += "Quantidades de M&Ms para cada cor:\n"
+    for cor, quantidade in quantidades.items():
+        resultado_texto += f"{cor}: {quantidade}\n"
+
+    # Exibe a caixa de mensagem com o resultado
+    messagebox.showinfo("Resultado da Roleta", resultado_texto)
+
+    # Fecha a janela principal da roleta após fechar a caixa de mensagem
+    roleta.destroy()  # Fecha a janela principal da roleta
+
 def jogar_roleta(root, callback=None):
     # Não é mais necessário ocultar a janela principal
     # root.withdraw()  # Isso não será necessário agora
@@ -45,22 +58,27 @@ def jogar_roleta(root, callback=None):
                 if callback:
                     callback(quantidades)  # Passa as quantidades para a função callback
 
+                # Exibe o resultado em uma nova janela
+                exibir_resultado(quantidades, numero_vencedor, roleta)
+
         passos_totais = 300  # Total de passos para suavizar a animação
         animar_giro()
 
     def gerar_comando(numero_total):
         """Gera as quantidades de M&Ms para cada cor."""
-        motores = ["LARANJA", "VERMELHO", "AMARELO", "AZUL", "VERDE"]
+        motores = ["VERMELHO", "AMARELO", "AZUL", "LARANJA", "VERDE"]
         base = numero_total // 5  # Quantidade base para cada motor
         restante = numero_total % 5  # Restante para distribuir
 
+        cores_retorno = ["VERMELHO", "AMARELO", "AZUL", "LARANJA", "VERDE"]
+
         # Distribuição uniforme dos M&Ms entre os motores
-        resultado = {motor: base for motor in motores}
+        resultado = {cor: base for cor in cores_retorno}
         for i in range(restante):
-            resultado[motores[i]] += 1
+            resultado[cores_retorno[i]] += 1
 
         # Retorna as quantidades das cores (sem os nomes das cores)
-        return list(resultado.values())
+        return resultado
 
     def atualiza_seta(angulo_atual):
         """Atualiza a posição da seta ao redor da roleta."""
@@ -117,4 +135,5 @@ def jogar_roleta(root, callback=None):
     roleta.mainloop()
 
 if __name__ == "__main__":
-    resultado = jogar_roleta()  # Agora retorna o resultado ao invés de exibir
+    root = tk.Tk()
+    jogar_roleta(root)  # Passa a janela principal como parâmetro

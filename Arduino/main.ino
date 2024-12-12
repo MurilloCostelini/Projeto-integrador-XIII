@@ -1,23 +1,33 @@
 #include <Stepper.h>
 
-#define STEPS_PER_REV 2048 // Passos para uma volta completa
-#define DEGREE_STEPS (STEPS_PER_REV / 360.0) // Passos por grau
+#define STEPS_PER_REV 2048 // Passos para uma volta completa 
+#define DEGREE_STEPS (STEPS_PER_REV / 360.0)*(-1) // Passos por grau * -1 Pq é anti horário
 
-Stepper motor1(STEPS_PER_REV, 2, 3, 4, 5);
-Stepper motor2(STEPS_PER_REV, 6, 8, 7, 9);
-Stepper motor3(STEPS_PER_REV, 10, 11, 12, 13);
-Stepper motor4(STEPS_PER_REV, 22, 23, 24, 25);
-Stepper motor5(STEPS_PER_REV, 26, 27, 28, 29);
+/*   QUAL PINO DO MOTOR PARA QUAL PINO DO ARDUINO:
 
-const int MOTOR_SPEED = 10;  // A velocidade do motor tem que mudar aqui 
+   MOTOR 1     MOTOR 2     MOTOR 3     MOTOR 4     MOTOR 5
+  IN1 >> 2 | IN1 >> 28 | IN1 >> 36 | IN1 >> 44 | IN1 >> 50 
+  IN2 >> 3 | IN2 >> 29 | IN2 >> 37 | IN2 >> 45 | IN2 >> 51 
+  IN3 >> 4 | IN3 >> 30 | IN3 >> 38 | IN3 >> 46 | IN3 >> 52 
+  IN4 >> 5 | IN4 >> 31 | IN4 >> 39 | IN4 >> 47 | IN4 >> 53 
 
-void realizarMovimento(Stepper &motor, int movimentos) {
-  int passosPorMovimento = DEGREE_STEPS * 170;
-  for (int i = 0; i < movimentos; i++) {
-    motor.step(passosPorMovimento);
-    delay(500);
-    motor.step(-passosPorMovimento);
-    delay(500);
+*/
+
+Stepper motor1(STEPS_PER_REV, 2, 4, 3, 5); // Motor LARANJA
+Stepper motor2(STEPS_PER_REV, 28, 30, 29, 31); // Motor VERMELHO
+Stepper motor3(STEPS_PER_REV, 36, 38, 37, 39); // Motor AMARELO
+Stepper motor4(STEPS_PER_REV, 44, 46, 45, 47); // Motor AZUL
+Stepper motor5(STEPS_PER_REV, 50, 52, 51, 53); // Motor VERDE
+
+const int MOTOR_SPEED = 15;
+
+void realizarMovimento(Stepper &motor, int quantidade) {
+
+  for (int i = 0; i < quantidade; i++) {
+    motor.step(DEGREE_STEPS * -155);
+    delay(800);
+    motor.step(DEGREE_STEPS * 155);
+    delay(800);
   }
 }
 
@@ -29,7 +39,7 @@ void setup() {
   motor5.setSpeed(MOTOR_SPEED);
 
   Serial.begin(9600);
-  Serial.println("Pronto para receber comandos.");
+  Serial.println("Pronto para receber comandos no formato 'COR QUANTIDADE'.");
 }
 
 void loop() {
@@ -37,10 +47,22 @@ void loop() {
     String comando = Serial.readStringUntil('\n');
     comando.trim();
 
+    // Dividir comando em partes (cor e quantidade)
     int espaco = comando.indexOf(' ');
+    if (espaco == -1) {
+      Serial.println("Formato inválido. Use 'COR QUANTIDADE'.");
+      return;
+    }
+
     String cor = comando.substring(0, espaco);
     int quantidade = comando.substring(espaco + 1).toInt();
 
+    if (quantidade <= 0) {
+      Serial.println("Quantidade inválida. Deve ser um número maior que 0.");
+      return;
+    }
+
+    // Associar cor ao motor e realizar movimento
     if (cor == "LARANJA") {
       realizarMovimento(motor1, quantidade);
     } else if (cor == "VERMELHO") {
@@ -51,6 +73,9 @@ void loop() {
       realizarMovimento(motor4, quantidade);
     } else if (cor == "VERDE") {
       realizarMovimento(motor5, quantidade);
+    } else {
+      Serial.println("Cor inválida. Use LARANJA, VERMELHO, AMARELO, AZUL ou VERDE.");
+      return;
     }
 
     Serial.println("OK");
